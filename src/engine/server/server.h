@@ -71,12 +71,22 @@ class CServer : public IServer
 	
 	// keep track of how many admins are logged in
 	int m_numLoggedInAdmins;
-	void DecreaseLoggedInAdmins() {
-		if (!--m_numLoggedInAdmins) UpdateServerInfo();
-	}
-	void IncreaseLoggedInAdmins() {
-		if (++m_numLoggedInAdmins) UpdateServerInfo();
-	}
+	void UpdateLoggedInAdmins();
+	
+	// info messages
+	void UpdateInfoTexts();
+	struct CInfoText
+	{
+		int m_Interval;
+		int m_IntervalTicks;
+		int m_NextTick;
+		std::string m_Text;
+		CInfoText *m_Next;
+	};
+	CInfoText *m_InfoTexts;
+	int m_InfoTextInterval;
+	int m_InfoTextMsgInterval;
+	int m_InfoTextIntervalPause;
 	
 public:
 	class IGameServer *GameServer() { return m_pGameServer; }
@@ -289,6 +299,15 @@ public:
 	static void ConVotebans(IConsole::IResult *pResult, void *pUser);
 	static void ConAddLogin(IConsole::IResult *pResult, void *pUser);
 	static void ConRemoveLogin(IConsole::IResult *pResult, void *pUser);
+	
+	// info messages
+	static void ConAddInfo(IConsole::IResult *pResult, void *pUser);
+	static void ConRemoveInfo(IConsole::IResult *pResult, void *pUser);
+	static void ConListInfo(IConsole::IResult *pResult, void *pUser);
+	int GetInfoTextIntervalPause() { return m_InfoTextIntervalPause; }
+	int GetInfoTextMsgInterval() { return m_InfoTextMsgInterval; }
+	int GetInfoTextInterval() { return m_InfoTextInterval; }
+	std::string GetNextInfoText();
 	
 	virtual int GetNumLoggedInAdmins() { return m_numLoggedInAdmins; }
 	

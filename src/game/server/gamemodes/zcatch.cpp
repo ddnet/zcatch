@@ -2,7 +2,7 @@
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
 /* zCatch by erd and Teetime                                                                 */
 /* Modified by Teelevision for zCatch/TeeVi, see readme.txt and license.txt.                 */
-
+#include <iostream>
 #include <engine/shared/config.h>
 #include <game/server/gamecontext.h>
 #include <game/server/gamecontroller.h>
@@ -122,13 +122,77 @@ int CGameController_zCatch::OnCharacterDeath(class CCharacter *pVictim, class CP
 
 void CGameController_zCatch::OnPlayerInfoChange(class CPlayer *pP)
 {
-	if(g_Config.m_SvColorIndicator && pP->m_zCatchNumKillsInARow <= 20)
-	{
-		int Num = max(0, 160 - pP->m_zCatchNumKillsInARow * 10);
-		pP->m_TeeInfos.m_ColorBody = Num * 0x010000 + 0xff00;
-		pP->m_TeeInfos.m_ColorFeet = pP->m_zCatchNumKillsInARow == 20 ? 0x40ff00 : pP->m_TeeInfos.m_ColorBody;
-		pP->m_TeeInfos.m_UseCustomColor = 1;
-	}
+    if(g_Config.m_SvColorIndicator)
+    {
+    	switch(pP->m_zCatchNumKillsInARow){
+    		case 0:
+				pP->m_TeeInfos.m_ColorBody = 0xFFBB00;
+				pP->m_TeeInfos.m_ColorFeet =  0x11FF00;
+				break;
+    		case 15:
+				pP->m_TeeInfos.m_ColorBody = 0xEEFF00;
+				break;
+    		case 14:
+				pP->m_TeeInfos.m_ColorBody = 0xDDFF00;
+				break;
+    		case 13:
+				pP->m_TeeInfos.m_ColorBody = 0xCCFF00;
+				break;
+    		case 12:
+				pP->m_TeeInfos.m_ColorBody = 0xBBFF00;
+				break;
+    		case 11:
+				pP->m_TeeInfos.m_ColorBody = 0xAAFF00;
+				break;
+    		case 10:
+				pP->m_TeeInfos.m_ColorBody = 0x99FF00;
+				break;
+    		case 9:
+				pP->m_TeeInfos.m_ColorBody = 0x88FF00;
+				break;
+    		case 8:
+				pP->m_TeeInfos.m_ColorBody = 0x77FF00;
+				break;
+    		case 7:
+				pP->m_TeeInfos.m_ColorBody = 0x66FF00;
+				break;
+    		case 6:
+				pP->m_TeeInfos.m_ColorBody = 0x55FF00;
+				break;
+    		case 5:
+				pP->m_TeeInfos.m_ColorBody = 0x44FF00;
+				break;
+    		case 4:
+				pP->m_TeeInfos.m_ColorBody = 0x33FF00;
+				break;
+    		case 3:
+				pP->m_TeeInfos.m_ColorBody = 0x22FF00;
+				break;
+    		case 2:
+				pP->m_TeeInfos.m_ColorBody = 0x11FF00;
+				break;
+    		case 1:
+				pP->m_TeeInfos.m_ColorBody = 0x00FF00;
+				break;
+    		default:
+				pP->m_TeeInfos.m_ColorBody = 0x000000;
+				break;
+    	}
+    	pP->m_TeeInfos.m_ColorFeet = 0x11FF00 + pP->m_TeeInfos.m_ColorFeet;
+    	pP->m_TeeInfos.m_UseCustomColor = 1;
+    }
+//	if(g_Config.m_SvColorIndicator){
+//		if(pP->m_zCatchNumKillsInARow > 1 || pP->m_zCatchNumKillsInARow < 16)
+//		{
+//				pP->m_TeeInfos.m_ColorBody = 0x11FF00 + pP->m_TeeInfos.m_ColorBody;
+//		}
+//		else
+//		{
+//				pP->m_TeeInfos.m_ColorBody = 0x11FF00;
+//		}
+//				pP->m_TeeInfos.m_ColorFeet = pP->m_TeeInfos.m_ColorBody;
+//				pP->m_TeeInfos.m_UseCustomColor = 1;
+//	}
 }
 
 void CGameController_zCatch::StartRound()

@@ -89,6 +89,8 @@ bool CCharacter::Spawn(CPlayer *pPlayer, vec2 Pos)
 		m_ActiveWeapon = WEAPON_GUN;
 		m_LastWeapon = WEAPON_HAMMER;
 	}
+
+	pPlayer->m_RespawnProtection = Server()->Tick() + Server()->TickSpeed() * 2;
     /* end zCatch */
 	
 	m_LastNoAmmoSound = -1;
@@ -879,10 +881,11 @@ bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
 	/* zCatch */
 	if(From == m_pPlayer->GetCID() || Weapon == WEAPON_GAME)
 		return false;
-
 	if(g_Config.m_SvMode == 4 && Weapon == WEAPON_GRENADE && Dmg < g_Config.m_SvGrenadeMinDamage)
 		return false;
 
+	if(m_pPlayer->m_RespawnProtection > Server()->Tick() || GameServer()->m_apPlayers[From]->m_RespawnProtection > Server()->Tick())
+		return false;
 	m_Health = 0;
 	m_Armor = 0;
 	/* end zCatch */

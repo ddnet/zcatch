@@ -73,6 +73,8 @@ public:
 	bool HasBeenThereRecently(vec2 v, const vec2 *&pos, int firstTick, int lastTick) const;
 	bool AimedAtCharRecently(vec2 v, const CCharacter *c, const vec2 *&pos, const vec2 *&posVictim, int firstTick);
 	float HowCloseToXRecently(vec2 x, const vec2 *&pos, int firstTick);
+	void SetEmoteType(int EmoteType) { m_EmoteType = EmoteType; };
+	void SetEmoteStop(int EmoteStop) { m_EmoteStop = EmoteStop; };
 
 private:
 	// player controlling this character
@@ -104,6 +106,7 @@ private:
 
 	int m_EmoteType;
 	int m_EmoteStop;
+
 
 	// last tick that the player took any action ie some input
 	int m_LastAction;

@@ -526,6 +526,14 @@ void CGameContext::OnTick()
 			}
 		}
 	}
+	
+	// info messages
+	// execute if interval is given and message interval is due, respecting the pause
+	if(Server()->GetInfoTextInterval() > 0
+		&& ((Server()->Tick() % Server()->GetInfoTextInterval()) - Server()->GetInfoTextIntervalPause()) % Server()->GetInfoTextMsgInterval() == 0)
+	{
+		SendChat(-1, CGameContext::CHAT_ALL, Server()->GetNextInfoText().c_str());
+	}
 
 	// bot detection
 	// it is based on the behaviour of some bots to shoot at a player's _exact_ position
@@ -940,20 +948,16 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 					if(MuteValidation(pPlayer))
 					{
 						// prepare message
-						const char *msgForm = "/PM/ %s",
-							*msgFormSender = "/PM -> %s / %s";
+						const char *msgForm = "/PM -> %s / %s";
 						int len = 32 + MAX_NAME_LENGTH + str_length(msgStart);
 						char *msg = (char*)malloc(len * sizeof(char));
 						CNetMsg_Sv_Chat M;
 						M.m_Team = 0;
 						M.m_ClientID = ClientID;
-						// send to sender
-						str_format(msg, len * sizeof(char), msgFormSender, Server()->ClientName(recipient), msgStart);
+						// send to sender and recipient
+						str_format(msg, len * sizeof(char), msgForm, Server()->ClientName(recipient), msgStart);
 						M.m_pMessage = msg;
 						Server()->SendPackMsg(&M, MSGFLAG_VITAL, ClientID);
-						// send to recipient
-						str_format(msg, len * sizeof(char), msgForm, msgStart);
-						M.m_pMessage = msg;
 						Server()->SendPackMsg(&M, MSGFLAG_VITAL, recipient);
 						// tidy up
 						free(msg);
@@ -1350,6 +1354,43 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 		pPlayer->m_LastEmote = Server()->Tick();
 
 		SendEmoticon(ClientID, pMsg->m_Emoticon);
+		CCharacter* pChr = pPlayer->GetCharacter();
+					if(pChr)
+					{
+						switch(pMsg->m_Emoticon)
+						{
+						case EMOTICON_EXCLAMATION:
+						case EMOTICON_GHOST:
+						case EMOTICON_QUESTION:
+						case EMOTICON_WTF:
+								pChr->SetEmoteType(EMOTE_SURPRISE);
+								break;
+						case EMOTICON_DOTDOT:
+						case EMOTICON_DROP:
+						case EMOTICON_ZZZ:
+								pChr->SetEmoteType(EMOTE_BLINK);
+								break;
+						case EMOTICON_EYES:
+						case EMOTICON_HEARTS:
+						case EMOTICON_MUSIC:
+								pChr->SetEmoteType(EMOTE_HAPPY);
+								break;
+						case EMOTICON_OOP:
+						case EMOTICON_SORRY:
+						case EMOTICON_SUSHI:
+								pChr->SetEmoteType(EMOTE_PAIN);
+								break;
+						case EMOTICON_DEVILTEE:
+						case EMOTICON_SPLATTEE:
+						case EMOTICON_ZOMG:
+								pChr->SetEmoteType(EMOTE_ANGRY);
+								break;
+							default:
+								pChr->SetEmoteType(EMOTE_NORMAL);
+								break;
+						}
+						pChr->SetEmoteStop(Server()->Tick() + 2 * Server()->TickSpeed());
+					}
 	}
 	else if (MsgID == NETMSGTYPE_CL_KILL && !m_World.m_Paused)
 	{

@@ -113,6 +113,8 @@ public:
 	int m_CampTick;
 	vec2 m_CampPos;
 	
+	int m_RespawnProtection;
+
 	// zCatch/TeeVi
 	enum
 	{
