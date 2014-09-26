@@ -2065,6 +2065,9 @@ void CGameContext::OnInit(/*class IKernel *pKernel*/)
 		m_pController = new CGameControllerDM(this);*/
 	m_pController = new CGameController_zCatch(this);
 
+#if defined(CONF_SQL)
+		m_Ranking = new CRanking(this);
+#endif
 	// setup core world
 	//for(int i = 0; i < MAX_CLIENTS; i++)
 	//	game.players[i].core.world = &game.world.core;

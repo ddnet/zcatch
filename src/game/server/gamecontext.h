@@ -10,13 +10,16 @@
 #include <game/layers.h>
 #include <game/voting.h>
 
+
 #include "eventhandler.h"
 #include "gamecontroller.h"
 #include "gameworld.h"
+#include "ranking.h"
 #include "player.h"
 
+
 #define MAX_MUTES 35
-#define ZCATCH_VERSION "0.4.8 BETA"
+#define ZCATCH_VERSION "0.4.9 BETA"
 
 /*
 	Tick
@@ -47,6 +50,7 @@ class CGameContext : public IGameServer
 	CCollision m_Collision;
 	CNetObjHandler m_NetObjHandler;
 	CTuningParams m_Tuning;
+
 
 	static void ConTuneParam(IConsole::IResult *pResult, void *pUserData);
 	static void ConTuneReset(IConsole::IResult *pResult, void *pUserData);
@@ -94,6 +98,8 @@ public:
 
 	CEventHandler m_Events;
 	CPlayer *m_apPlayers[MAX_CLIENTS];
+
+    class CRanking *m_Ranking;
 
 	IGameController *m_pController;
 	CGameWorld m_World;

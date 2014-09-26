@@ -6,7 +6,6 @@
 // this include should perhaps be removed
 #include "entities/character.h"
 #include "gamecontext.h"
-
 // player object
 class CPlayer
 {

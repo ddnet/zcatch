@@ -6,11 +6,12 @@
 #define GAME_SERVER_GAMEMODES_ZCATCH_H
 
 #include <game/server/gamecontroller.h>
+#include "../ranking.h"
 
 class CGameController_zCatch: public IGameController
 {
 	int m_OldMode;
-
+	CRanking *m_Ranking;
 public:
 	CGameController_zCatch(class CGameContext *pGameServer);
 	virtual void Tick();

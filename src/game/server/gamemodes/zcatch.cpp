@@ -248,6 +248,21 @@ void CGameController_zCatch::OnCharacterSpawn(class CCharacter *pChr)
 
 void CGameController_zCatch::EndRound()
 {
+
+	//CheckWinner
+	int m_WinnerClientID = 0;
+	for(int i = 0; i < MAX_CLIENTS; i++)
+	{
+			if(GameServer()->m_apPlayers[i])
+			{
+				if(GameServer()->m_apPlayers[i]->m_zCatchNumVictims)
+					m_WinnerClientID = GameServer()->m_apPlayers[i]->GetCID();
+			}
+	}
+
+#if defined(CONF_SQL)
+	m_Ranking->SaveRanking(m_WinnerClientID);
+#endif
 	for(int i = 0; i < MAX_CLIENTS; i++)
 	{
 		if(GameServer()->m_apPlayers[i])
@@ -258,8 +273,12 @@ void CGameController_zCatch::EndRound()
 				GameServer()->m_apPlayers[i]->SetTeamDirect(GameServer()->m_pController->ClampTeam(1));
 
 				char aBuf[128];
+				str_format(aBuf, sizeof(aBuf), "Winner  --  %s", Server()->ClientName(m_WinnerClientID));
+				GameServer()->SendChatTarget(i, aBuf);
 				str_format(aBuf, sizeof(aBuf), "Kills: %d | Deaths: %d", GameServer()->m_apPlayers[i]->m_Kills, GameServer()->m_apPlayers[i]->m_Deaths);
 				GameServer()->SendChatTarget(i, aBuf);
+
+
 
 				if(GameServer()->m_apPlayers[i]->m_TicksSpec != 0 || GameServer()->m_apPlayers[i]->m_TicksIngame != 0)
 				{
@@ -280,6 +299,7 @@ void CGameController_zCatch::EndRound()
 	GameServer()->m_World.m_Paused = true;
 	m_GameOverTick = Server()->Tick();
 	m_SuddenDeath = 0;
+
 }
 
 bool CGameController_zCatch::CanChangeTeam(CPlayer *pPlayer, int JoinTeam)
