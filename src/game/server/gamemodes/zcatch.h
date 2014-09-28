@@ -11,7 +11,6 @@
 class CGameController_zCatch: public IGameController
 {
 	int m_OldMode;
-	CRanking *m_Ranking;
 public:
 	CGameController_zCatch(class CGameContext *pGameServer);
 	virtual void Tick();

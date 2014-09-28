@@ -261,7 +261,7 @@ void CGameController_zCatch::EndRound()
 	}
 
 #if defined(CONF_SQL)
-	m_Ranking->SaveRanking(m_WinnerClientID);
+	GameServer()->m_Ranking->SaveRanking(m_WinnerClientID);
 #endif
 	for(int i = 0; i < MAX_CLIENTS; i++)
 	{
@@ -273,7 +273,9 @@ void CGameController_zCatch::EndRound()
 				GameServer()->m_apPlayers[i]->SetTeamDirect(GameServer()->m_pController->ClampTeam(1));
 
 				char aBuf[128];
-				str_format(aBuf, sizeof(aBuf), "Winner  --  %s", Server()->ClientName(m_WinnerClientID));
+				str_format(aBuf, sizeof(aBuf), "-----------------------------------");
+				GameServer()->SendChatTarget(i, aBuf);
+				str_format(aBuf, sizeof(aBuf), "Winner:  %s", Server()->ClientName(m_WinnerClientID));
 				GameServer()->SendChatTarget(i, aBuf);
 				str_format(aBuf, sizeof(aBuf), "Kills: %d | Deaths: %d", GameServer()->m_apPlayers[i]->m_Kills, GameServer()->m_apPlayers[i]->m_Deaths);
 				GameServer()->SendChatTarget(i, aBuf);

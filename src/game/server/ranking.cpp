@@ -189,7 +189,7 @@ void CRanking::SaveRankingThread(void *pUser){
 		try
 		{
 			char aBuf[768];
-
+			char aBuf2[768];
 			// check strings
 			pData->m_pSqlData->ClearString(pData->m_aName);
 
@@ -198,23 +198,35 @@ void CRanking::SaveRankingThread(void *pUser){
 
 			if(pData->m_pSqlData->m_pResults->next())
 			{
-				str_format(aBuf, sizeof(aBuf), "SELECT Wins FROM zctach_ranks WHERE Name ='%s'",pData->m_aName);
+				str_format(aBuf, sizeof(aBuf), "SELECT Wins FROM zcatch_ranks WHERE Name ='%s'",pData->m_aName);
 				pData->m_pSqlData->m_pResults = pData->m_pSqlData->m_pStatement->executeQuery(aBuf);
 
 				if(pData->m_pSqlData->m_pResults->rowsCount() == 1){
 					pData->m_pSqlData->m_pResults->next();
+					int wins = (int)pData->m_pSqlData->m_pResults->getInt("Wins");
 
-					pData->m_pSqlData->GameServer()->SendChatTarget(pData->m_ClientID, aBuf);
-					str_format(aBuf, sizeof(aBuf), "INSERT INTO zcatch_ranks(Name, Wins) VALUES ('%s') ON duplicate key UPDATE Name=VALUES(Name), Wins=Wins+1;", pData->m_aName);
+					str_format(aBuf, sizeof(aBuf), "INSERT INTO zcatch_ranks(Name, Wins) VALUES ('%s', '%d') ON duplicate key UPDATE Name=VALUES(Name), Wins=Wins+1;", pData->m_aName, wins);
 					pData->m_pSqlData->m_pStatement->execute(aBuf);
+
+					if(wins == 1){
+						str_format(aBuf2, sizeof(aBuf), "Woah! You won for the first time! Now you have 1 win.");
+						pData->m_pSqlData->GameServer()->SendChatTarget(pData->m_ClientID, aBuf2);
+					}else{
+						str_format(aBuf2, sizeof(aBuf), "You're winner! Now you have %d wins!", wins);
+						pData->m_pSqlData->GameServer()->SendChatTarget(pData->m_ClientID, aBuf2);
+					}
 				}
+
+
 			}
 
-			pData->m_pSqlData->GameServer()->SendChatTarget(pData->m_ClientID, aBuf);
+
+
+
 			delete pData->m_pSqlData->m_pResults;
 
 			// if no entry found... create a new one
-			str_format(aBuf, sizeof(aBuf), "INSERT IGNORE INTO %s_race(Name, Wins2 VALUES ('%s', '1');",pData->m_aName);
+			str_format(aBuf, sizeof(aBuf), "INSERT IGNORE INTO zcatch_ranks(Name, Wins) VALUES ('%s', '1');",pData->m_aName);
 			pData->m_pSqlData->m_pStatement->execute(aBuf);
 
 			dbg_msg("SQL", "Updating rank done");
@@ -268,4 +280,3 @@ void CRanking::ClearString(char *pString, int size)
 	strcpy(pString,newString);
 }
 #endif
-
