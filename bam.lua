@@ -1,4 +1,5 @@
 CheckVersion("0.4")
+CheckVersion("0.4")
 
 Import("configure.lua")
 Import("other/sdl/sdl.lua")
@@ -307,11 +308,11 @@ function build(settings)
 	end
 
 	-- build client, server, version server and master server
-	client_exe = Link(client_settings, "DDNet", game_shared, game_client,
+	client_exe = Link(client_settings, "zCatch", game_shared, game_client,
 		engine, client, game_editor, zlib, pnglite, wavpack,
 		client_link_other, client_osxlaunch, jsonparser)
 
-	server_exe = Link(server_settings, "DDNet-Server", engine, server,
+	server_exe = Link(server_settings, "zCatch-Server", engine, server,
 		game_shared, game_server, zlib, server_link_other)
 
 	serverlaunch = {}
