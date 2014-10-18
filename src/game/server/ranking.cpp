@@ -212,7 +212,7 @@ void CRanking::SaveRankingThread(void *pUser){
 						str_format(aBuf2, sizeof(aBuf), "Woah! You won for the first time! Now you have 1 win.");
 						pData->m_pSqlData->GameServer()->SendChatTarget(pData->m_ClientID, aBuf2);
 					}else{
-						str_format(aBuf2, sizeof(aBuf), "You're winner! Now you have %d wins!", wins);
+						str_format(aBuf2, sizeof(aBuf), "You're winner! Now you have %d wins!", wins+1);
 						pData->m_pSqlData->GameServer()->SendChatTarget(pData->m_ClientID, aBuf2);
 					}
 				}
@@ -245,6 +245,144 @@ void CRanking::SaveRankingThread(void *pUser){
 	lock_release(gs_SqlLock);
 }
 
+
+void CRanking::ShowRanking(int ClientID, const char* pName){
+
+	CSqlRankData *Tmp = new CSqlRankData();
+	Tmp->m_ClientID = ClientID;
+	str_copy(Tmp->m_aName, pName, MAX_NAME_LENGTH);
+	str_format(Tmp->m_aRequestingPlayer, sizeof(Tmp->m_aRequestingPlayer), "%s", Server()->ClientName(ClientID));
+	Tmp->m_pSqlData = this;
+
+	void *ShowRanking = thread_create(ShowRankingThread, Tmp);
+#if defined(CONF_FAMILY_UNIX)
+	pthread_detach((pthread_t)ShowRanking);
+#endif
+}
+
+void CRanking::ShowRankingThread(void *pUser){
+
+	lock_wait(gs_SqlLock);
+	CSqlRankData *pData = (CSqlRankData *)pUser;
+
+	// Connect to database
+	if(pData->m_pSqlData->Connect())
+	{
+		try
+		{
+			// check strings
+			pData->m_pSqlData->ClearString(pData->m_aName);
+			char originalName[MAX_NAME_LENGTH];
+			strcpy(originalName,pData->m_aName);
+
+
+			char aBuf[768];
+			char aBuf2[768];
+			pData->m_pSqlData->m_pStatement->execute("SET @pos := 0;");
+			pData->m_pSqlData->m_pStatement->execute("SET @prev := NULL;");
+			pData->m_pSqlData->m_pStatement->execute("SET @rank := 1;");
+
+			str_format(aBuf, sizeof(aBuf), "SELECT Wins,Name, rank FROM (SELECT (@pos := @pos+1) pos, (@rank := IF(@prev = Wins,@rank, @pos)) rank, Name, (@prev := Wins) Wins FROM zcatch_ranks ORDER BY Wins DESC) as result WHERE Name='%s';", pData->m_aName);
+			pData->m_pSqlData->m_pResults = pData->m_pSqlData->m_pStatement->executeQuery(aBuf);
+
+			if(pData->m_pSqlData->m_pResults->next())
+			{
+				if(pData->m_pSqlData->m_pResults->rowsCount() == 1){
+					int wins = (int)pData->m_pSqlData->m_pResults->getInt("Wins");
+					int rank = (int)pData->m_pSqlData->m_pResults->getInt("rank");
+					str_format(aBuf2, sizeof(aBuf2), "%d. %s's have %d %s Requested by %s.", rank,originalName,wins, (wins > 1) ? "wins." : "win.", pData->m_aRequestingPlayer);
+					pData->m_pSqlData->GameServer()->SendChatTarget(pData->m_ClientID, aBuf2);
+				}
+			}else{
+				str_format(aBuf2, sizeof(aBuf2), "%s's is not ranked.", originalName);
+				pData->m_pSqlData->GameServer()->SendChatTarget(pData->m_ClientID, aBuf2);
+			}
+
+			// delete results and statement
+			delete pData->m_pSqlData->m_pResults;
+		}
+		catch (sql::SQLException &e)
+		{
+			char aBuf[256];
+			str_format(aBuf, sizeof(aBuf), "MySQL Error: %s", e.what());
+			dbg_msg("SQL", aBuf);
+			dbg_msg("SQL", "ERROR: Could not update rank");
+		}
+		pData->m_pSqlData->Disconnect();
+	}
+
+	delete pData;
+	lock_release(gs_SqlLock);
+}
+
+
+void CRanking::ShowTop5(int ClientID, int Offset){
+
+	CSqlTop5Data *Tmp = new CSqlTop5Data();
+	Tmp->m_ClientID = ClientID;
+	Tmp->m_Offset = Offset;
+	str_format(Tmp->m_aRequestingPlayer, sizeof(Tmp->m_aRequestingPlayer), "%s", Server()->ClientName(ClientID));
+	Tmp->m_pSqlData = this;
+
+	void *ShowTop5 = thread_create(ShowTop5Thread, Tmp);
+#if defined(CONF_FAMILY_UNIX)
+	pthread_detach((pthread_t)ShowTop5);
+#endif
+}
+
+void CRanking::ShowTop5Thread(void *pUser){
+
+	lock_wait(gs_SqlLock);
+	CSqlTop5Data *pData = (CSqlTop5Data *)pUser;
+
+	// Connect to database
+	if(pData->m_pSqlData->Connect())
+	{
+		try
+		{
+
+			char aBuf[768];
+			char aBuf2[768];
+
+			str_format(aBuf, sizeof(aBuf2), "SELECT Name FROM zcatch_ranks;");
+			pData->m_pSqlData->m_pResults = pData->m_pSqlData->m_pStatement->executeQuery(aBuf);
+			str_format(aBuf2, sizeof(aBuf2), "------=====] Top5 (%d records)", (int)pData->m_pSqlData->m_pResults->rowsCount());
+
+			pData->m_pSqlData->m_pStatement->execute("SET @pos := 0;");
+			pData->m_pSqlData->m_pStatement->execute("SET @prev := NULL;");
+			pData->m_pSqlData->m_pStatement->execute("SET @rank := 1;");
+
+			str_format(aBuf, sizeof(aBuf), "SELECT Wins,Name, rank FROM (SELECT (@pos := @pos+1) pos, (@rank := IF(@prev = Wins,@rank, @pos)) rank, Name, (@prev := Wins) Wins FROM zcatch_ranks ORDER BY Wins DESC) as result ORDER BY rank Limit %d,5;", pData->m_Offset);
+			pData->m_pSqlData->m_pResults = pData->m_pSqlData->m_pStatement->executeQuery(aBuf);
+
+
+			pData->m_pSqlData->GameServer()->SendChatTarget(pData->m_ClientID, aBuf2);
+			while(pData->m_pSqlData->m_pResults->next()){
+					int wins = (int)pData->m_pSqlData->m_pResults->getInt("Wins");
+					int rank = (int)pData->m_pSqlData->m_pResults->getInt("rank");
+					str_format(aBuf2, sizeof(aBuf2), "%d. %s's have %d %s", rank, pData->m_pSqlData->m_pResults->getString("Name").c_str(),wins, (wins > 1) ? "wins." : "win.");
+					pData->m_pSqlData->GameServer()->SendChatTarget(pData->m_ClientID, aBuf2);
+			}
+			str_format(aBuf2, sizeof(aBuf2), "------=====]");
+			pData->m_pSqlData->GameServer()->SendChatTarget(pData->m_ClientID, aBuf2);
+
+
+			// delete results and statement
+			delete pData->m_pSqlData->m_pResults;
+		}
+		catch (sql::SQLException &e)
+		{
+			char aBuf[256];
+			str_format(aBuf, sizeof(aBuf), "MySQL Error: %s", e.what());
+			dbg_msg("SQL", aBuf);
+			dbg_msg("SQL", "ERROR: Could not update rank");
+		}
+		pData->m_pSqlData->Disconnect();
+	}
+
+	delete pData;
+	lock_release(gs_SqlLock);
+}
 
 // anti SQL injection
 void CRanking::ClearString(char *pString, int size)

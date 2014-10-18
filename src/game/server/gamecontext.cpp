@@ -849,6 +849,30 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 					SendChatTarget(ClientID, aBuf);
 				}
 			}
+			else if(!str_comp_nocase("top5", pMsg->m_pMessage + 1) || !str_comp_nocase_num("top5 ", pMsg->m_pMessage + 1, 5))
+			{
+				if(!str_comp_nocase_num("top5 ", pMsg->m_pMessage + 1, 5)){
+					const char *Number = pMsg->m_pMessage + 5;
+					  for(int i = 0; Number[i] != '\0'; i++){
+					        if(isalpha(Number[i])){
+					        	SendChatTarget(ClientID, "It must be a number.");
+					        	return;
+					        }
+					  }
+					  int i = str_toint(Number);
+					  m_Ranking->ShowTop5(ClientID, i);
+				}else{
+					 m_Ranking->ShowTop5(ClientID, 0);
+				}
+			}
+			else if(!str_comp_nocase("rank", pMsg->m_pMessage + 1) || !str_comp_nocase_num("rank ", pMsg->m_pMessage + 1, 5))
+			{
+				if(!str_comp_nocase_num("rank ", pMsg->m_pMessage + 1, 5)){
+					m_Ranking->ShowRanking(ClientID, pMsg->m_pMessage + 6);
+				}else{
+					m_Ranking->ShowRanking(ClientID, Server()->ClientName(ClientID));
+				}
+			}
 			else if(!str_comp_nocase("help", pMsg->m_pMessage + 1))
 			{
 				SendChatTarget(ClientID, "/victims: who is waiting for your death");
@@ -936,11 +960,12 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 						}
 					}
 					int i = str_toint(recipientStart);
-					if(m_apPlayers[i])
-					{
-						recipient = i;
-						msgStart = str_skip_whitespaces(str_skip_to_whitespace((char*)recipientStart));
-					}
+					if(i <= MAX_CLIENTS)
+						if(m_apPlayers[i])
+						{
+							recipient = i;
+							msgStart = str_skip_whitespaces(str_skip_to_whitespace((char*)recipientStart));
+						}
 				}
 				
 				if(recipient >= 0)
@@ -2168,3 +2193,7 @@ const char *CGameContext::Version() { return GAME_VERSION; }
 const char *CGameContext::NetVersion() { return GAME_NETVERSION; }
 
 IGameServer *CreateGameServer() { return new CGameContext; }
+
+
+
+

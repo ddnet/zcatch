@@ -38,6 +38,8 @@ class CRanking
 	}
 
 	static void SaveRankingThread(void *pUser);
+	static void ShowRankingThread(void *pUser);
+	static void ShowTop5Thread(void *pUser);
 
 	void Init();
 
@@ -54,6 +56,8 @@ public:
 	~CRanking();
 
 	void SaveRanking(int ClientID);
+	void ShowRanking(int ClientID, const char* pName);
+	void ShowTop5(int ClientID, int Offset);
 };
 
 struct CSqlRankData
@@ -65,6 +69,13 @@ struct CSqlRankData
 #else
 	char m_aName[MAX_NAME_LENGTH * 2 - 1];
 #endif
+	char m_aRequestingPlayer[MAX_NAME_LENGTH];
 };
-
+struct CSqlTop5Data
+{
+	CRanking *m_pSqlData;
+	int m_Offset;
+	int m_ClientID;
+	char m_aRequestingPlayer[MAX_NAME_LENGTH];
+};
 #endif
