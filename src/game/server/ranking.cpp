@@ -271,10 +271,10 @@ void CRanking::ShowRankingThread(void *pUser){
 		try
 		{
 			// check strings
-			pData->m_pSqlData->ClearString(pData->m_aName);
+
 			char originalName[MAX_NAME_LENGTH];
 			strcpy(originalName,pData->m_aName);
-
+			pData->m_pSqlData->ClearString(pData->m_aName);
 
 			char aBuf[768];
 			char aBuf2[768];
@@ -291,11 +291,12 @@ void CRanking::ShowRankingThread(void *pUser){
 					int wins = (int)pData->m_pSqlData->m_pResults->getInt("Wins");
 					int rank = (int)pData->m_pSqlData->m_pResults->getInt("rank");
 					str_format(aBuf2, sizeof(aBuf2), "%d. %s's have %d %s Requested by %s.", rank,originalName,wins, (wins > 1) ? "wins." : "win.", pData->m_aRequestingPlayer);
-					pData->m_pSqlData->GameServer()->SendChatTarget(pData->m_ClientID, aBuf2);
+					pData->m_pSqlData->GameServer()->SendChat(-1, CGameContext::CHAT_ALL, aBuf2);
 				}
 			}else{
 				str_format(aBuf2, sizeof(aBuf2), "%s's is not ranked.", originalName);
 				pData->m_pSqlData->GameServer()->SendChatTarget(pData->m_ClientID, aBuf2);
+
 			}
 
 			// delete results and statement
