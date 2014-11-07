@@ -849,7 +849,7 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 					SendChatTarget(ClientID, aBuf);
 				}
 				SendChatTarget(ClientID, " ");
-				SendChatTarget(ClientID, "Command list: top5, rank, help, victims, kills, t, ti");
+				SendChatTarget(ClientID, "Commands list: top5, rank, help, victims, kills, t, ti");
 			}
 			else if(!str_comp_nocase("top5", pMsg->m_pMessage + 1) || !str_comp_nocase_num("top5 ", pMsg->m_pMessage + 1, 5))
 			{
@@ -877,7 +877,7 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 			}
 			else if(!str_comp_nocase("help", pMsg->m_pMessage + 1))
 			{
-				SendChatTarget(ClientID, "/rank [name] or /rank - show position in ranking.");
+				SendChatTarget(ClientID, "/rank <name> or /rank - show position in ranking.");
 				SendChatTarget(ClientID, "/top5 or /top5 <number> - Top5 winners on server.");
 				SendChatTarget(ClientID, "/victims - who is waiting for your death");
 				SendChatTarget(ClientID, "/kills -  list of players you killed");
