@@ -840,7 +840,7 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 			if(!str_comp_nocase("info", pMsg->m_pMessage + 1))
 			{
 				char aBuf[128];
-				str_format(aBuf, sizeof(aBuf), "zCatch %s by erd and Teetime, modified by Teelevision. See /help.", ZCATCH_VERSION);
+				str_format(aBuf, sizeof(aBuf), "zCatch %s by erd and Teetime, modified by Teelevision modified by Savander. See /help.", ZCATCH_VERSION);
 				SendChatTarget(ClientID, aBuf);
 				SendChatTarget(ClientID, "You are caught when killed and released when your killer dies. Catch everyone to win the round.");
 				if(g_Config.m_SvLastStandingPlayers > 2)
@@ -848,6 +848,8 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 					str_format(aBuf, sizeof(aBuf), "If there are less than %d players, the round does not end and all players are released instead.", g_Config.m_SvLastStandingPlayers);
 					SendChatTarget(ClientID, aBuf);
 				}
+				SendChatTarget(ClientID, " ");
+				SendChatTarget(ClientID, "Command list: top5, rank, help, victims, kills, t, ti");
 			}
 			else if(!str_comp_nocase("top5", pMsg->m_pMessage + 1) || !str_comp_nocase_num("top5 ", pMsg->m_pMessage + 1, 5))
 			{
@@ -875,10 +877,12 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 			}
 			else if(!str_comp_nocase("help", pMsg->m_pMessage + 1))
 			{
-				SendChatTarget(ClientID, "/victims: who is waiting for your death");
-				SendChatTarget(ClientID, "/kills: list of players you killed");
-				SendChatTarget(ClientID, "/t <name> <msg>: write PM to <name>");
-				SendChatTarget(ClientID, "/ti <id> <msg>: write PM via ID");
+				SendChatTarget(ClientID, "/rank [name] or /rank - show position in ranking.");
+				SendChatTarget(ClientID, "/top5 or /top5 <number> - Top5 winners on server.");
+				SendChatTarget(ClientID, "/victims - who is waiting for your death");
+				SendChatTarget(ClientID, "/kills -  list of players you killed");
+				SendChatTarget(ClientID, "/t <name> <msg> - write PM to <name>");
+				SendChatTarget(ClientID, "/ti <id> <msg> - write PM via ID");
 			}
 			else if(!str_comp_nocase("victims", pMsg->m_pMessage + 1))
 			{
@@ -973,7 +977,7 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 					if(MuteValidation(pPlayer))
 					{
 						// prepare message
-						const char *msgForm = "/PM -> %s / %s";
+						const char *msgForm = "/PM -> %s - %s";
 						int len = 32 + MAX_NAME_LENGTH + str_length(msgStart);
 						char *msg = (char*)malloc(len * sizeof(char));
 						CNetMsg_Sv_Chat M;
