@@ -52,14 +52,14 @@ void CRanking::Init()
 			str_format(aBuf, sizeof(aBuf), "CREATE TABLE IF NOT EXISTS zcatch_ranks (Name VARCHAR(%d) BINARY NOT NULL, Wins INT DEFAULT 0, UNIQUE KEY Name (Name)) CHARACTER SET utf8 ;", MAX_NAME_LENGTH);
 			m_pStatement->execute(aBuf);
 
-			dbg_msg("SQL", "Ranking table was created successfully");
+			dbg_msg("SQL", "Ranking table were created successfully");
 		}
 		catch (sql::SQLException &e)
 		{
 			char aBuf[256];
 			str_format(aBuf, sizeof(aBuf), "MySQL Error: %s", e.what());
 			dbg_msg("SQL", aBuf);
-			dbg_msg("SQL", "ERROR: Table was NOT created");
+			dbg_msg("SQL", "ERROR: Tables were NOT created");
 		}
 
 		// disconnect from database
@@ -155,7 +155,7 @@ bool CRanking::Connect()
 	}
 	catch (...)
 	{
-		dbg_msg("SQL", "Unknown Error cause by the MySQL/C++ Connector, my advice is to compile server_sql_debug and use it");
+		dbg_msg("SQL", "Unknown Error cause by the MySQL/C++ Connector, my advice compile server_debug and use it");
 
 		dbg_msg("SQL", "ERROR: SQL connection failed");
 		return false;
@@ -212,11 +212,16 @@ void CRanking::SaveRankingThread(void *pUser){
 						str_format(aBuf2, sizeof(aBuf), "Woah! You won for the first time! Now you have 1 win.");
 						pData->m_pSqlData->GameServer()->SendChatTarget(pData->m_ClientID, aBuf2);
 					}else{
-						str_format(aBuf2, sizeof(aBuf), "You're the winner! Now you have %d wins!", wins+1);
+						str_format(aBuf2, sizeof(aBuf), "You're winner! Now you have %d wins!", wins+1);
 						pData->m_pSqlData->GameServer()->SendChatTarget(pData->m_ClientID, aBuf2);
 					}
 				}
+
+
 			}
+
+
+
 
 			delete pData->m_pSqlData->m_pResults;
 
@@ -285,11 +290,11 @@ void CRanking::ShowRankingThread(void *pUser){
 				if(pData->m_pSqlData->m_pResults->rowsCount() == 1){
 					int wins = (int)pData->m_pSqlData->m_pResults->getInt("Wins");
 					int rank = (int)pData->m_pSqlData->m_pResults->getInt("rank");
-					str_format(aBuf2, sizeof(aBuf2), "%d. %s has %d %s, requested by %s.", rank,originalName,wins, (wins != 1) ? "wins" : "win", pData->m_aRequestingPlayer);
+					str_format(aBuf2, sizeof(aBuf2), "%d. %s's have %d %s Requested by %s.", rank,originalName,wins, (wins > 1) ? "wins." : "win.", pData->m_aRequestingPlayer);
 					pData->m_pSqlData->GameServer()->SendChat(-1, CGameContext::CHAT_ALL, aBuf2);
 				}
 			}else{
-				str_format(aBuf2, sizeof(aBuf2), "%s is not ranked.", originalName);
+				str_format(aBuf2, sizeof(aBuf2), "%s's is not ranked.", originalName);
 				pData->m_pSqlData->GameServer()->SendChatTarget(pData->m_ClientID, aBuf2);
 
 			}
@@ -356,7 +361,7 @@ void CRanking::ShowTop5Thread(void *pUser){
 			while(pData->m_pSqlData->m_pResults->next()){
 					int wins = (int)pData->m_pSqlData->m_pResults->getInt("Wins");
 					int rank = (int)pData->m_pSqlData->m_pResults->getInt("rank");
-					str_format(aBuf2, sizeof(aBuf2), "%d. %s has %d %s", rank, pData->m_pSqlData->m_pResults->getString("Name").c_str(),wins, (wins != 1) ? "wins" : "win");
+					str_format(aBuf2, sizeof(aBuf2), "%d. %s's have %d %s", rank, pData->m_pSqlData->m_pResults->getString("Name").c_str(),wins, (wins > 1) ? "wins." : "win.");
 					pData->m_pSqlData->GameServer()->SendChatTarget(pData->m_ClientID, aBuf2);
 			}
 			str_format(aBuf2, sizeof(aBuf2), "------=====]");

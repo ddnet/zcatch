@@ -19,8 +19,7 @@
 
 
 #define MAX_MUTES 35
-#define ZCATCH_VERSION "0.4.9 BETA"
-
+#define ZCATCH_VERSION "0.5"
 /*
 	Tick
 		Game Context (CGameContext::tick)
@@ -78,6 +77,10 @@ class CGameContext : public IGameServer
 	static void ConMutes(IConsole::IResult *pResult, void *pUserData);
 	
 	static void ConKill(IConsole::IResult *pResult, void *pUserData);
+
+	void Whisper(int ClientID, char *pStr);
+	void WhisperID(int ClientID, int VictimID, char *pMessage);
+	void Converse(int ClientID, char *pStr);
 
 	CGameContext(int Resetting);
 	void Construct(int Resetting);
@@ -150,7 +153,9 @@ public:
 		CHAT_ALL=-2,
 		CHAT_SPEC=-1,
 		CHAT_RED=0,
-		CHAT_BLUE=1
+		CHAT_BLUE=1,
+		CHAT_WHISPER_SEND=2,
+		CHAT_WHISPER_RECV=3
 	};
 	
 	struct CMutes

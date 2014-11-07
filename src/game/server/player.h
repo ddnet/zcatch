@@ -62,7 +62,8 @@ public:
 	int m_LastChangeInfo;
 	int m_LastEmote;
 	int m_LastKill;
-
+	int m_LastWhisperTo;
+	int m_ClientVersion;
 	// TODO: clean this up
 	struct
 	{

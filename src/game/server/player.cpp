@@ -47,6 +47,8 @@ CPlayer::CPlayer(CGameContext *pGameServer, int ClientID, int Team)
 	m_CurrentTarget.y = 0;
 	m_LastTarget.x = 0;
 	m_LastTarget.y = 0;
+
+	m_ClientVersion = VERSION_VANILLA;
 }
 
 CPlayer::~CPlayer()
@@ -58,8 +60,10 @@ CPlayer::~CPlayer()
 		delete tmp;
 	}
 	
+
 	delete m_pCharacter;
 	m_pCharacter = 0;
+
 }
 
 void CPlayer::Tick()
