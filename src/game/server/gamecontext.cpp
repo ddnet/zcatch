@@ -881,6 +881,7 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 				SendChatTarget(ClientID, "Commands list: top5, rank, help, victims, kills, w, whisper, c, converse");
 			}
 
+#if defined(CONF_SQL)
 			else if(!str_comp_nocase("top5", pMsg->m_pMessage + 1) || !str_comp_nocase_num("top5 ", pMsg->m_pMessage + 1, 5))
 			{
 				if(!str_comp_nocase_num("top5 ", pMsg->m_pMessage + 1, 5)){
@@ -905,6 +906,7 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 					m_Ranking->ShowRanking(ClientID, Server()->ClientName(ClientID));
 				}
 			}
+#endif
 			else if(!str_comp_nocase("help", pMsg->m_pMessage + 1))
 			{
 				SendChatTarget(ClientID, "/rank <name> or /rank - show position in ranking.");
