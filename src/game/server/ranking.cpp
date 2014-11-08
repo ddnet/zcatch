@@ -92,6 +92,10 @@ bool CRanking::Connect()
 	{
 		char aBuf[256];
 
+		m_pDriver = 0;
+		m_pConnection = 0;
+		m_pStatement = 0;
+
 		sql::ConnectOptionsMap connection_properties;
 		connection_properties["hostName"]      = sql::SQLString(m_pIp);
 		connection_properties["port"]          = m_Port;
