@@ -104,6 +104,7 @@ MACRO_CONFIG_INT(EcAuthTimeout, ec_auth_timeout, 30, 1, 120, CFGFLAG_ECON, "Time
 MACRO_CONFIG_INT(EcOutputLevel, ec_output_level, 1, 0, 2, CFGFLAG_ECON, "Adjusts the amount of information in the external console")
 
 MACRO_CONFIG_INT(SvGlobalBantime, sv_global_bantime, 60, 0, 1440, CFGFLAG_SERVER, "The time a client gets banned if the ban server reports it. 0 to disable")
+MACRO_CONFIG_INT(SvRespawnProtection, sv_respawn_protection, 1, 0, 1, CFGFLAG_SERVER, "Whether a player gets respawn protection")
 
 
 #if defined(CONF_SQL)
