@@ -1,5 +1,7 @@
-This software called "zCatch/TeeVi" is a modification of "zCatch" which is
-a modification of "Teeworlds".
+This software called "zCatch/TeeVi" is a modification of "zCatch" which is a modification of "Teeworlds".
+DDNet version, with global ranking. Made by Savander and Deen.
+Teewebs.net supported (by Eeeee).
+
 See license.txt.
 
 #############################################################################
