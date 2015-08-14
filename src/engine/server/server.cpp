@@ -1586,8 +1586,17 @@ int CServer::Run()
 				ReportTime += time_freq()*ReportInterval;
 			}
 
-			// wait for incomming data
-			net_socket_read_wait(m_NetServer.Socket(), 5);
+			bool NonActive = true;
+
+			for(int c = 0; c < MAX_CLIENTS; c++)
+				if(m_aClients[c].m_State != CClient::STATE_EMPTY)
+					NonActive = false;
+
+			// wait for incoming data
+			if(NonActive && g_Config.m_SvShutdownWhenEmpty)
+				m_RunServer = false;
+			else
+				net_socket_read_wait(m_NetServer.Socket(), 5);
 		}
 	}
 	// disconnect all clients on shutdown

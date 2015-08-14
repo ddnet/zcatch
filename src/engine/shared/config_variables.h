@@ -105,7 +105,9 @@ MACRO_CONFIG_INT(EcOutputLevel, ec_output_level, 1, 0, 2, CFGFLAG_ECON, "Adjusts
 
 MACRO_CONFIG_INT(SvGlobalBantime, sv_global_bantime, 60, 0, 1440, CFGFLAG_SERVER, "The time a client gets banned if the ban server reports it. 0 to disable")
 MACRO_CONFIG_INT(SvRespawnProtection, sv_respawn_protection, 1, 0, 1, CFGFLAG_SERVER, "Whether a player gets respawn protection")
+
 MACRO_CONFIG_STR(SvInputFifo, sv_input_fifo, 128, "", CFGFLAG_SERVER, "Fifo file to use as input for server console")
+MACRO_CONFIG_INT(SvShutdownWhenEmpty, sv_shutdown_when_empty, 0, 0, 1, CFGFLAG_SERVER, "Shutdown server as soon as noone is on it anymore")
 
 #if defined(CONF_SQL)
 //zCatch mysql.
