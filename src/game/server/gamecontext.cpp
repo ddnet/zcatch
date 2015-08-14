@@ -550,7 +550,7 @@ void CGameContext::OnTick()
 		{
 		
 			// abort if player is not ingame or already detected as a bot
-			if(!(p = m_apPlayers[i]) || p->m_IsAimBot || !(ci = GetPlayerChar(i)))
+			if(!(p = m_apPlayers[i]) || (p->m_IsAimBot  && p->m_IsAimBot+Server()->TickSpeed()*30 > Server()->Tick()) || !(ci = GetPlayerChar(i)))
 				continue;
 			
 			// check against every other player
