@@ -117,6 +117,6 @@ MACRO_CONFIG_INT(SvSuicideTime, sv_suicide_time, 15, 0, 60, CFGFLAG_SERVER, "Min
 MACRO_CONFIG_INT(SvKillPenalty, sv_kill_penalty, 5, 0, 50, CFGFLAG_SERVER, "The amount of points which the score will be decreased on each suicide")
 
 // zCatch/TeeVi
-MACRO_CONFIG_INT(SvLastStandingPlayers, sv_last_standing_players, 5, 2, 16, CFGFLAG_SERVER, "How many players are needed to have last standing rounds")
+MACRO_CONFIG_INT(SvLastStandingPlayers, sv_last_standing_players, 10, 2, 16, CFGFLAG_SERVER, "How many players are needed to have last standing rounds")
 MACRO_CONFIG_INT(SvBotDetection, sv_bot_detection, 0, 0, 3, CFGFLAG_SERVER, "Bot detection (0=off, 1=fast aim, 2=follow, 3=all)")
 #endif
