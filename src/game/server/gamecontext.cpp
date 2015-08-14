@@ -627,6 +627,16 @@ void CGameContext::OnTick()
 				for(int j = 0; j < MAX_CLIENTS; ++j)
 					if(Server()->IsAuthed(j))
 						SendChatTarget(j, aBuf);
+
+				//Reset informations for better detection
+				p->m_AimBotIndex = 0;
+				p->m_AimBotRange = 0;
+				p->m_AimBotLastDetection = 0;
+				p->m_AimBotTargetSpeed = .0;
+				p->m_CurrentTarget.x = 0;
+				p->m_CurrentTarget.y = 0;
+				p->m_LastTarget.x = 0;
+				p->m_LastTarget.y = 0;
 			}
 			
 			// reduce once every seconds (tolerance)
