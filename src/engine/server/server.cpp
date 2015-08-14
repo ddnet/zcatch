@@ -25,6 +25,7 @@
 #include <engine/shared/packer.h>
 #include <engine/shared/protocol.h>
 #include <engine/shared/snapshot.h>
+#include <engine/shared/fifoconsole.h>
 
 #include <mastersrv/mastersrv.h>
 
@@ -2310,11 +2311,18 @@ int main(int argc, const char **argv) // ignore_convention
 
 	pEngine->InitLogfile();
 
+#if defined(CONF_FAMILY_UNIX)
+	FifoConsole *fifoConsole = new FifoConsole(pConsole, g_Config.m_SvInputFifo, CFGFLAG_SERVER);
+#endif
+
 	// run the server
 	dbg_msg("server", "starting...");
 	pServer->Run();
 
 	// free
+#if defined(CONF_FAMILY_UNIX)
+	delete fifoConsole;
+#endif
 	delete pServer;
 	delete pKernel;
 	delete pEngineMap;
