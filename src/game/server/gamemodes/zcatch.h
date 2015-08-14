@@ -6,8 +6,9 @@
 #define GAME_SERVER_GAMEMODES_ZCATCH_H
 
 #include <game/server/gamecontroller.h>
+#if defined(CONF_SQL)
 #include "../ranking.h"
-
+#endif
 class CGameController_zCatch: public IGameController
 {
 	int m_OldMode;

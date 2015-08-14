@@ -878,7 +878,11 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 					str_format(aBuf, sizeof(aBuf), "If there are less than %d players, the round does not end and all players are released instead.", g_Config.m_SvLastStandingPlayers);
 					SendChatTarget(ClientID, aBuf);
 				}
+#if defined(CONF_SQL)
 				SendChatTarget(ClientID, "Commands list: top5, rank, help, victims, kills, w, whisper, c, converse");
+#else
+				SendChatTarget(ClientID, "Commands list: help, victims, kills, w, whisper, c, converse");
+#endif
 			}
 
 #if defined(CONF_SQL)
@@ -909,8 +913,10 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 #endif
 			else if(!str_comp_nocase("help", pMsg->m_pMessage + 1))
 			{
+#if defined(CONF_SQL)
 				SendChatTarget(ClientID, "/rank <name> or /rank - show position in ranking.");
 				SendChatTarget(ClientID, "/top5 or /top5 <number> - Top5 winners on server.");
+#endif
 				SendChatTarget(ClientID, "/victims - who is waiting for your death");
 				SendChatTarget(ClientID, "/kills -  list of players you killed");
 				SendChatTarget(ClientID, "/whisper <name> <msg>");

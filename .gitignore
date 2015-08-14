@@ -27,4 +27,5 @@ config.cfg
 .cproject
 
 banmaster*
-
+.settings/*
+.settings
