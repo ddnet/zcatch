@@ -14,7 +14,9 @@
 #include "eventhandler.h"
 #include "gamecontroller.h"
 #include "gameworld.h"
+#if defined(CONF_SQL)
 #include "ranking.h"
+#endif
 #include "player.h"
 
 
@@ -101,9 +103,9 @@ public:
 
 	CEventHandler m_Events;
 	CPlayer *m_apPlayers[MAX_CLIENTS];
-
+#if defined(CONF_SQL)
     class CRanking *m_Ranking;
-
+#endif
 	IGameController *m_pController;
 	CGameWorld m_World;
 

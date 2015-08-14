@@ -29,3 +29,5 @@ config.cfg
 banmaster*
 .settings/*
 .settings
+*.bat
+*.exe
