@@ -281,7 +281,7 @@ void CRanking::ShowRankingThread(void *pUser){
 			pData->m_pSqlData->m_pStatement->execute("SET @prev := NULL;");
 			pData->m_pSqlData->m_pStatement->execute("SET @rank := 1;");
 
-			str_format(aBuf, sizeof(aBuf), "SELECT Wins,Name, rank FROM (SELECT (@pos := @pos+1) pos, (@rank := IF(@prev = Wins,@rank, @pos)) rank, Name, (@prev := Wins) Wins FROM zcatch_ranks ORDER BY Wins DESC) as result WHERE Name='%s';", pData->m_aName);
+			str_format(aBuf, sizeof(aBuf), "SELECT Wins,Name, rank FROM (SELECT (@pos := @pos+1) pos, (@rank := IF(@prev = Wins,@rank, @pos)) rank, Name, (@prev := Wins) Wins FROM (SELECT Name, Wins FROM zcatch_ranks ORDER BY Wins DESC Limit 18446744073709551615) as a) as b WHERE Name='%s';", pData->m_aName);
 			pData->m_pSqlData->m_pResults = pData->m_pSqlData->m_pStatement->executeQuery(aBuf);
 
 			if(pData->m_pSqlData->m_pResults->next())
@@ -352,7 +352,7 @@ void CRanking::ShowTop5Thread(void *pUser){
 			pData->m_pSqlData->m_pStatement->execute("SET @prev := NULL;");
 			pData->m_pSqlData->m_pStatement->execute("SET @rank := 1;");
 
-			str_format(aBuf, sizeof(aBuf), "SELECT Wins,Name, rank FROM (SELECT (@pos := @pos+1) pos, (@rank := IF(@prev = Wins,@rank, @pos)) rank, Name, (@prev := Wins) Wins FROM zcatch_ranks ORDER BY Wins DESC) as result ORDER BY rank Limit %d,5;", pData->m_Offset);
+			str_format(aBuf, sizeof(aBuf), "SELECT Wins,Name, rank FROM (SELECT (@pos := @pos+1) pos, (@rank := IF(@prev = Wins,@rank, @pos)) rank, Name, (@prev := Wins) Wins FROM (SELECT Name, Wins FROM zcatch_ranks ORDER BY Wins DESC Limit 18446744073709551615) as a) as b ORDER BY rank Limit %d,5;", pData->m_Offset);
 			pData->m_pSqlData->m_pResults = pData->m_pSqlData->m_pStatement->executeQuery(aBuf);
 
 
