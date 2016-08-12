@@ -150,8 +150,6 @@ function build(settings)
 
 	--settings.cc.flags:Add("-m32")
 	--settings.link.flags:Add("-m32")
-	settings.link.flags:Add("-static-libgcc")
-	settings.link.flags:Add("-static-libstdc++")
 
 	cflags = os.getenv("CFLAGS")
 	if cflags then
@@ -170,6 +168,10 @@ function build(settings)
 	else
 		settings.cc.flags:Add("-Wall")
 		if family == "windows" then
+			if config.compiler.driver == "gcc" then
+				settings.link.flags:Add("-static-libgcc")
+				settings.link.flags:Add("-static-libstdc++")
+			end
 			-- disable visibility attribute support for gcc on windows
 			settings.cc.defines:Add("NO_VIZ")
 		elseif platform == "macosx" then
