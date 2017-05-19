@@ -8,6 +8,8 @@ src/game/generated
 SDL.dll
 freetype.dll
 autoexec.cfg
+cmake-build-debug
+.idea
 
 crapnet*
 dilate*
