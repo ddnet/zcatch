@@ -271,7 +271,7 @@ void CServerBan::ConBanExt(IConsole::IResult *pResult, void *pUser)
 	const char *pStr = pResult->GetString(0);
 	int Minutes = pResult->NumArguments()>1 ? clamp(pResult->GetInteger(1), 0, 44640) : defaultMinutes;
 	const char *pReason = pResult->NumArguments()>2 ? pResult->GetString(2) : "No reason given";
-	
+
 	// check if time was given or a reason instead
 	const char *time;
 	if(pResult->NumArguments() > 1)
@@ -360,14 +360,14 @@ CServer::CServer() : m_DemoRecorder(&m_SnapshotDelta)
 
 	m_RconClientID = IServer::RCON_CID_SERV;
 	m_RconAuthLevel = AUTHED_SUBADMIN;
-	
+
 	// when starting there are no admins
 	m_numLoggedInAdmins = 0;
-	
+
 	m_Votebans = NULL;
 	m_InfoTexts = NULL;
 	m_InfoTextInterval = -1;
-	
+
 	Init();
 }
 
@@ -380,7 +380,7 @@ CServer::~CServer()
 		delete m_Votebans;
 		m_Votebans = tmp;
 	}
-	
+
 	// delte info texts
 	while(m_InfoTexts != NULL)
 	{
@@ -797,6 +797,22 @@ void CServer::DoSnapshot()
 	GameServer()->OnPostSnap();
 }
 
+int CServer::NewClientNoAuthCallback(int ClientID, void *pUser)
+{
+	CServer *pThis = (CServer *)pUser;
+	pThis->m_aClients[ClientID].m_State = CClient::STATE_CONNECTING;
+	pThis->m_aClients[ClientID].m_aName[0] = 0;
+	pThis->m_aClients[ClientID].m_aClan[0] = 0;
+	pThis->m_aClients[ClientID].m_Country = -1;
+	pThis->m_aClients[ClientID].m_Authed = AUTHED_NO;
+	pThis->m_aClients[ClientID].m_AuthTries = 0;
+	pThis->m_aClients[ClientID].m_pRconCmdToSend = 0;
+	pThis->m_aClients[ClientID].Reset();
+
+	pThis->SendMap(ClientID);
+
+	return 0;
+}
 
 int CServer::NewClientCallback(int ClientID, void *pUser)
 {
@@ -834,10 +850,10 @@ int CServer::DelClientCallback(int ClientID, const char *pReason, void *pUser)
 	pThis->m_aClients[ClientID].m_AuthTries = 0;
 	pThis->m_aClients[ClientID].m_pRconCmdToSend = 0;
 	pThis->m_aClients[ClientID].m_Snapshots.PurgeAll();
-	
+
 	// could have been an admin
 	pThis->UpdateLoggedInAdmins();
-	
+
 	return 0;
 }
 
@@ -931,7 +947,7 @@ void CServer::ProcessClientPacket(CNetChunk *pPacket)
 		// system message
 		if(Msg == NETMSG_INFO)
 		{
-			if(m_aClients[ClientID].m_State == CClient::STATE_AUTH)
+			if((pPacket->m_Flags&NET_CHUNKFLAG_VITAL) != 0 && m_aClients[ClientID].m_State == CClient::STATE_AUTH)
 			{
 				const char *pVersion = Unpacker.GetString(CUnpacker::SANITIZE_CC);
 				if(str_comp(pVersion, GameServer()->NetVersion()) != 0)
@@ -957,7 +973,7 @@ void CServer::ProcessClientPacket(CNetChunk *pPacket)
 		}
 		else if(Msg == NETMSG_REQUEST_MAP_DATA)
 		{
-			if(m_aClients[ClientID].m_State < CClient::STATE_CONNECTING)
+			if((pPacket->m_Flags&NET_CHUNKFLAG_VITAL) == 0 || m_aClients[ClientID].m_State < CClient::STATE_CONNECTING)
 				return;
 
 			int Chunk = Unpacker.GetInt();
@@ -994,7 +1010,7 @@ void CServer::ProcessClientPacket(CNetChunk *pPacket)
 		}
 		else if(Msg == NETMSG_READY)
 		{
-			if(m_aClients[ClientID].m_State == CClient::STATE_CONNECTING)
+			if((pPacket->m_Flags&NET_CHUNKFLAG_VITAL) != 0 && m_aClients[ClientID].m_State == CClient::STATE_CONNECTING)
 			{
 				char aAddrStr[NETADDR_MAXSTRSIZE];
 				net_addr_str(m_NetServer.ClientAddr(ClientID), aAddrStr, sizeof(aAddrStr), true);
@@ -1009,7 +1025,7 @@ void CServer::ProcessClientPacket(CNetChunk *pPacket)
 		}
 		else if(Msg == NETMSG_ENTERGAME)
 		{
-			if(m_aClients[ClientID].m_State == CClient::STATE_READY && GameServer()->IsClientReady(ClientID))
+			if((pPacket->m_Flags&NET_CHUNKFLAG_VITAL) != 0 && m_aClients[ClientID].m_State == CClient::STATE_READY && GameServer()->IsClientReady(ClientID))
 			{
 				char aAddrStr[NETADDR_MAXSTRSIZE];
 				net_addr_str(m_NetServer.ClientAddr(ClientID), aAddrStr, sizeof(aAddrStr), true);
@@ -1077,12 +1093,12 @@ void CServer::ProcessClientPacket(CNetChunk *pPacket)
 		{
 			const char *pCmd = Unpacker.GetString();
 
-			if(Unpacker.Error() == 0 && m_aClients[ClientID].m_Authed)
+			if((pPacket->m_Flags&NET_CHUNKFLAG_VITAL) != 0 && Unpacker.Error() == 0 && m_aClients[ClientID].m_Authed)
 			{
-				
+
 				// try to find first space
 				const char *delimiter = strchr(pCmd, ' ');
-				
+
 				if(m_aClients[ClientID].m_Authed != AUTHED_SUBADMIN
 					|| (
 						m_aClients[ClientID].m_Authed == AUTHED_SUBADMIN
@@ -1122,7 +1138,7 @@ void CServer::ProcessClientPacket(CNetChunk *pPacket)
 			const char *pPw;
 			Unpacker.GetString(); // login name, not used
 			pPw = Unpacker.GetString(CUnpacker::SANITIZE_CC);
-			
+
 			// try matching username:password login
 			const char *delimiter = strchr(pPw, ':');
 			std::string username, password;
@@ -1133,8 +1149,8 @@ void CServer::ProcessClientPacket(CNetChunk *pPacket)
 				username.assign(pPw, delimiter - pPw);
 				password.assign(delimiter + 1);
 			}
-			
-			if(Unpacker.Error() == 0)
+
+			if((pPacket->m_Flags&NET_CHUNKFLAG_VITAL) != 0 && Unpacker.Error() == 0)
 			{
 				if(g_Config.m_SvRconPassword[0] == 0 && g_Config.m_SvRconModPassword[0] == 0 && logins.empty())
 				{
@@ -1146,7 +1162,7 @@ void CServer::ProcessClientPacket(CNetChunk *pPacket)
 					Msg.AddInt(1);	//authed
 					Msg.AddInt(1);	//cmdlist
 					SendMsgEx(&Msg, MSGFLAG_VITAL, ClientID, true);
-					
+
 					m_aClients[ClientID].m_Authed = AUTHED_ADMIN;
 					int SendRconCmds = Unpacker.GetInt();
 					if(Unpacker.Error() == 0 && SendRconCmds)
@@ -1182,12 +1198,12 @@ void CServer::ProcessClientPacket(CNetChunk *pPacket)
 					Msg.AddInt(1);	//authed
 					Msg.AddInt(1);	//cmdlist
 					SendMsgEx(&Msg, MSGFLAG_VITAL, ClientID, true);
-					
+
 					m_aClients[ClientID].m_Authed = AUTHED_SUBADMIN;
 					m_aClients[ClientID].m_SubAdminAuthName = loginit->first;
 					m_aClients[ClientID].m_SubAdminAuthPass = loginit->second;
 					m_aClients[ClientID].m_SubAdminCommandPassFails = 0;
-					
+
 					int SendRconCmds = Unpacker.GetInt();
 					if(Unpacker.Error() == 0 && SendRconCmds)
 						m_aClients[ClientID].m_pRconCmdToSend = Console()->FirstCommandInfo(IConsole::ACCESS_LEVEL_SUBADMIN, CFGFLAG_SERVER);
@@ -1247,7 +1263,7 @@ void CServer::ProcessClientPacket(CNetChunk *pPacket)
 	else
 	{
 		// game message
-		if(m_aClients[ClientID].m_State >= CClient::STATE_READY)
+		if((pPacket->m_Flags&NET_CHUNKFLAG_VITAL) != 0 && m_aClients[ClientID].m_State >= CClient::STATE_READY)
 			GameServer()->OnMessage(Msg, &Unpacker, ClientID);
 	}
 }
@@ -1454,7 +1470,7 @@ int CServer::Run()
 		return -1;
 	}
 
-	m_NetServer.SetCallbacks(NewClientCallback, DelClientCallback, this);
+	m_NetServer.SetCallbacks(NewClientCallback, NewClientNoAuthCallback, DelClientCallback, this);
 
 	m_Econ.Init(Console(), &m_ServerBan);
 
@@ -1738,10 +1754,10 @@ void CServer::ConVoteban(IConsole::IResult *pResult, void *pUser)
 void CServer::ConUnvoteban(IConsole::IResult *pResult, void *pUser)
 {
 	CServer* pThis = static_cast<CServer *>(pUser);
-	
+
 	// index to unvoteban
 	int index = pResult->GetInteger(0);
-	
+
 	CVoteban **v = &pThis->m_Votebans;
 	for(int c = 0; *v != NULL; ++c)
 	{
@@ -1760,7 +1776,7 @@ void CServer::ConUnvoteban(IConsole::IResult *pResult, void *pUser)
 		}
 		v = &(*v)->m_Next;
 	}
-	
+
 	// not found
 	pThis->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "Server", "index was not found, please use 'votebans' to obtain an index");
 }
@@ -1788,7 +1804,7 @@ void CServer::ConVotebans(IConsole::IResult *pResult, void *pUser)
 	char aAddrStr[NETADDR_MAXSTRSIZE];
 	int time;
 	int count = 0;
-	
+
 	pThis->CleanVotebans();
 	CVoteban *v = pThis->m_Votebans;
 	NETADDR addr;
@@ -1802,7 +1818,7 @@ void CServer::ConVotebans(IConsole::IResult *pResult, void *pUser)
 		pThis->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "Server", aBuf);
 		v = v->m_Next;
 	}
-	
+
 	str_format(aBuf, sizeof(aBuf), "%d votebanned ip(s)", count);
 	pThis->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "Server", aBuf);
 }
@@ -1813,12 +1829,12 @@ void CServer::ConAddLogin(IConsole::IResult *pResult, void *pUser)
 	char aBuf[128];
 	std::string username(pResult->GetString(0)),
 		password(pResult->GetString(1));
-	
+
 	// insert if doesn't exist
 	if(pThis->logins.find(username) == pThis->logins.end())
 	{
 		pThis->logins[username] = password;
-		
+
 		str_format(aBuf, sizeof(aBuf), "Added login for '%s'.", username.c_str());
 		pThis->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "Server", aBuf);
 	}
@@ -1834,7 +1850,7 @@ void CServer::ConRemoveLogin(IConsole::IResult *pResult, void *pUser)
 	char aBuf[128];
 	loginiterator loginit;
 	std::string username(pResult->GetString(0));
-	
+
 	// delete if exists
 	if((loginit = pThis->logins.find(username)) != pThis->logins.end())
 	{
@@ -1846,10 +1862,10 @@ void CServer::ConRemoveLogin(IConsole::IResult *pResult, void *pUser)
 				pThis->rconLogClientOut(i, "You were logged out.");
 			}
 		}
-		
+
 		// finally delete
 		pThis->logins.erase(loginit);
-		
+
 		str_format(aBuf, sizeof(aBuf), "Removed login '%s'.", username.c_str());
 		pThis->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "Server", aBuf);
 	}
@@ -1868,7 +1884,7 @@ void CServer::ConAddInfo(IConsole::IResult *pResult, void *pUser)
 		pThis->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "Server", "Interval must be between 1 and 1440.");
 		return;
 	}
-	
+
 	// add info text
 	CInfoText *t = new CInfoText;
 	t->m_Interval = interval;
@@ -1876,9 +1892,9 @@ void CServer::ConAddInfo(IConsole::IResult *pResult, void *pUser)
 	// insert front
 	t->m_Next = pThis->m_InfoTexts;
 	pThis->m_InfoTexts = t;
-	
+
 	pThis->UpdateInfoTexts();
-	
+
 	// message to console
 	char aBuf[128];
 	str_format(aBuf, sizeof(aBuf), "Added the following info text: %s", t->m_Text.c_str());
@@ -1891,7 +1907,7 @@ void CServer::ConRemoveInfo(IConsole::IResult *pResult, void *pUser)
 	int i = pResult->GetInteger(0);
 	int count = 0;
 	bool removed = false;
-	
+
 	CInfoText **t = &(pThis->m_InfoTexts);
 	while(*t != NULL)
 	{
@@ -1906,9 +1922,9 @@ void CServer::ConRemoveInfo(IConsole::IResult *pResult, void *pUser)
 		}
 		t = &((*t)->m_Next);
 	}
-	
+
 	pThis->UpdateInfoTexts();
-	
+
 	if(removed)
 		pThis->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "Server", "Info text removed");
 	else
@@ -1920,7 +1936,7 @@ void CServer::ConListInfo(IConsole::IResult *pResult, void *pUser)
 	CServer* pThis = static_cast<CServer *>(pUser);
 	char aBuf[128];
 	int count = 0;
-	
+
 	CInfoText *t = pThis->m_InfoTexts;
 	while(t != NULL)
 	{
@@ -1928,7 +1944,7 @@ void CServer::ConListInfo(IConsole::IResult *pResult, void *pUser)
 		pThis->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "Server", aBuf);
 		t = t->m_Next;
 	}
-	
+
 	str_format(aBuf, sizeof(aBuf), "%d info text(s)", count);
 	pThis->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "Server", aBuf);
 }
@@ -1941,10 +1957,10 @@ void CServer::UpdateInfoTexts()
 		m_InfoTextInterval = -1; // no interval
 		return;
 	}
-	
+
 	// need some random numbers later
 	init_rand();
-	
+
 	// update interval, set it to LCM(all text intervals)
 	m_InfoTextInterval = 1; // lowest possible interval
 	CInfoText *t = m_InfoTexts;
@@ -1956,7 +1972,7 @@ void CServer::UpdateInfoTexts()
 		t = t->m_Next;
 	}
 	m_InfoTextInterval *= TickSpeed() * 60; // min to ticks
-	
+
 	// count total number of messages per interval
 	int numMsg = 0;
 	t = m_InfoTexts;
@@ -1965,7 +1981,7 @@ void CServer::UpdateInfoTexts()
 		numMsg += m_InfoTextInterval / t->m_IntervalTicks;
 		t = t->m_Next;
 	}
-	
+
 	// interval between messages
 	m_InfoTextMsgInterval = m_InfoTextInterval / numMsg;
 	// additional pause to sync interval and msg interval
@@ -1988,11 +2004,11 @@ std::string CServer::GetNextInfoText()
 			selectedText = t;
 		t = t->m_Next;
 	}
-	
+
 	// return empty string if no text applies
 	if(selectedText == NULL)
 		return std::string();
-	
+
 	// update tick and return string
 	selectedText->m_NextTick += selectedText->m_IntervalTicks;
 	return selectedText->m_Text;
@@ -2204,15 +2220,15 @@ void CServer::RegisterCommands()
 	Console()->Chain("sv_max_clients_per_ip", ConchainMaxclientsperipUpdate, this);
 	Console()->Chain("mod_command", ConchainModCommandUpdate, this);
 	Console()->Chain("console_output_level", ConchainConsoleOutputLevelUpdate, this);
-	
+
 	Console()->Register("voteban", "i?i", CFGFLAG_SERVER, ConVoteban, this, "Voteban a player by id");
 	Console()->Register("unvoteban", "i", CFGFLAG_SERVER, ConUnvoteban, this, "Remove voteban by index in list votebans");
 	Console()->Register("unvoteban_client", "i", CFGFLAG_SERVER, ConUnvotebanClient, this, "Remove voteban by player id");
 	Console()->Register("votebans", "", CFGFLAG_SERVER, ConVotebans, this, "Show all votebans");
-	
+
 	Console()->Register("add_login", "ss", CFGFLAG_SERVER, ConAddLogin, this, "Add a subadmin login. The rcon password will be user:pass with no additional spaces.", IConsole::ACCESS_LEVEL_ADMIN);
 	Console()->Register("remove_login", "s", CFGFLAG_SERVER, ConRemoveLogin, this, "Remove a subadmin login", IConsole::ACCESS_LEVEL_ADMIN);
-	
+
 	Console()->Register("add_info", "is", CFGFLAG_SERVER, ConAddInfo, this, "Add a info text that is printed in the chat repeatedly in the given interval of minutes.");
 	Console()->Register("remove_info", "i", CFGFLAG_SERVER, ConRemoveInfo, this, "Remove a info text");
 	Console()->Register("list_info", "", CFGFLAG_SERVER, ConListInfo, this, "Show all info texts");
@@ -2260,6 +2276,12 @@ int main(int argc, const char **argv) // ignore_convention
 		}
 	}
 #endif
+
+	if(secure_random_init() != 0)
+	{
+		dbg_msg("secure", "could not initialize secure RNG");
+		return -1;
+	}
 
 	CServer *pServer = CreateServer();
 	IKernel *pKernel = IKernel::Create();
@@ -2343,4 +2365,3 @@ int main(int argc, const char **argv) // ignore_convention
 	delete pConfig;
 	return 0;
 }
-

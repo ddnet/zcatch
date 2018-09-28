@@ -144,7 +144,7 @@ end
 function build(settings)
 	-- apply compiler settings
 	config.compiler:Apply(settings)
-	
+
 	--settings.objdir = Path("objs")
 	settings.cc.Output = Intermediate_Output
 
@@ -201,7 +201,7 @@ function build(settings)
 			settings.link.libs:Add("dl")
 			settings.link.libs:Add("rt")
 		end
-		
+
 		if platform == "solaris" then
 		    settings.link.flags:Add("-lsocket")
 		    settings.link.flags:Add("-lnsl")
@@ -234,6 +234,7 @@ function build(settings)
 	if config.websockets.value then
 		libwebsockets = Compile(settings, Collect("src/engine/external/libwebsockets/*.c"))
 	end
+	md5 = Compile(settings, "src/engine/external/md5/md5.c")
 
 	-- build game components
 	engine_settings = settings:Copy()
@@ -248,7 +249,7 @@ function build(settings)
 			server_settings.link.libs:Add("dl")
 			server_settings.link.libs:Add("rt")
 		end
-		
+
 		if platform == "macosx" then
 			client_settings.link.frameworks:Add("OpenGL")
 			client_settings.link.frameworks:Add("AGL")
@@ -314,16 +315,16 @@ function build(settings)
 	tools = {}
 	for i,v in ipairs(tools_src) do
 		toolname = PathFilename(PathBase(v))
-		tools[i] = Link(settings, toolname, Compile(settings, v), engine, zlib, pnglite)
+		tools[i] = Link(settings, toolname, Compile(settings, v), engine, zlib, pnglite, md5)
 	end
 
 	-- build client, server, version server and master server
 	client_exe = Link(client_settings, "zCatch", game_shared, game_client,
 		engine, client, game_editor, zlib, pnglite, wavpack,
-		client_link_other, client_osxlaunch, jsonparser, libwebsockets)
+		client_link_other, client_osxlaunch, jsonparser, libwebsockets, md5)
 
 	server_exe = Link(server_settings, "zCatch-Server", engine, server,
-		game_shared, game_server, zlib, server_link_other, libwebsockets)
+		game_shared, game_server, zlib, server_link_other, libwebsockets, md5)
 
 	serverlaunch = {}
 	if platform == "macosx" then
@@ -331,7 +332,7 @@ function build(settings)
 	end
 
 	versionserver_exe = Link(server_settings, "versionsrv", versionserver,
-		engine, zlib, libwebsockets)
+		engine, zlib, libwebsockets, md5)
 
 	masterserver_exe = Link(server_settings, "mastersrv", masterserver,
 		engine, zlib)
@@ -396,14 +397,14 @@ if platform == "macosx" then
 	debug_sql_settings_ppc.cc.flags:Add("-arch ppc")
 	debug_sql_settings_ppc.link.flags:Add("-arch ppc")
 	debug_sql_settings_ppc.cc.defines:Add("CONF_DEBUG", "CONF_SQL")
-	
+
 	release_settings_ppc = release_settings:Copy()
 	release_settings_ppc.config_name = "release_ppc"
 	release_settings_ppc.config_ext = "_ppc"
 	release_settings_ppc.cc.flags:Add("-arch ppc")
 	release_settings_ppc.link.flags:Add("-arch ppc")
 	release_settings_ppc.cc.defines:Add("CONF_RELEASE")
-	
+
 	release_sql_settings_ppc = release_sql_settings:Copy()
 	release_sql_settings_ppc.config_name = "sql_release_ppc"
 	release_sql_settings_ppc.config_ext = "_sql_ppc"
@@ -437,7 +438,7 @@ if platform == "macosx" then
 		release_settings_x86.cc.flags:Add("-arch i386")
 		release_settings_x86.link.flags:Add("-arch i386")
 		release_settings_x86.cc.defines:Add("CONF_RELEASE")
-	
+
 		release_sql_settings_x86 = release_sql_settings:Copy()
 		release_sql_settings_x86.config_name = "sql_release_x86"
 		release_sql_settings_x86.config_ext = "_sql_x86"
@@ -472,7 +473,7 @@ if platform == "macosx" then
 		release_settings_x86_64.cc.flags:Add("-arch x86_64")
 		release_settings_x86_64.link.flags:Add("-arch x86_64")
 		release_settings_x86_64.cc.defines:Add("CONF_RELEASE")
-	
+
 		release_sql_settings_x86_64 = release_sql_settings:Copy()
 		release_sql_settings_x86_64.config_name = "sql_release_x86_64"
 		release_sql_settings_x86_64.config_ext = "_sql_x86_64"
@@ -487,7 +488,7 @@ if platform == "macosx" then
 	end
 
 	DefaultTarget("game_debug_x86")
-	
+
 	if config.macosxppc.value == 1 then
 		if arch == "ia32" then
 			PseudoTarget("release", ppc_r, x86_r)
