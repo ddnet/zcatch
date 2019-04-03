@@ -68,11 +68,11 @@ class CServer : public IServer
 	class IGameServer *m_pGameServer;
 	class IConsole *m_pConsole;
 	class IStorage *m_pStorage;
-	
+
 	// keep track of how many admins are logged in
 	int m_numLoggedInAdmins;
 	void UpdateLoggedInAdmins();
-	
+
 	// info messages
 	void UpdateInfoTexts();
 	struct CInfoText
@@ -87,7 +87,7 @@ class CServer : public IServer
 	int m_InfoTextInterval;
 	int m_InfoTextMsgInterval;
 	int m_InfoTextIntervalPause;
-	
+
 public:
 	class IGameServer *GameServer() { return m_pGameServer; }
 	class IConsole *Console() { return m_pConsole; }
@@ -149,6 +149,7 @@ public:
 		std::string m_SubAdminAuthName;
 		std::string m_SubAdminAuthPass;
 		int m_SubAdminCommandPassFails;
+		int m_Flags;
 
 		const IConsole::CCommandInfo *m_pRconCmdToSend;
 
@@ -195,6 +196,7 @@ public:
 	virtual void SetClientClan(int ClientID, char const *pClan);
 	virtual void SetClientCountry(int ClientID, int Country);
 	virtual void SetClientScore(int ClientID, int Score);
+	virtual void SetClientFlags(int ClientID, int Flags);
 
 	void Kick(int ClientID, const char *pReason);
 
@@ -267,10 +269,10 @@ public:
 	virtual void SnapFreeID(int ID);
 	virtual void *SnapNewItem(int Type, int ID, int Size);
 	void SnapSetStaticsize(int ItemType, int Size);
-	
+
 	//zCatch
 	virtual void MapReload();
-	
+
 	// voteban system
 	// struct CVotebanAddr
 	// {
@@ -300,7 +302,7 @@ public:
 	static void ConVotebans(IConsole::IResult *pResult, void *pUser);
 	static void ConAddLogin(IConsole::IResult *pResult, void *pUser);
 	static void ConRemoveLogin(IConsole::IResult *pResult, void *pUser);
-	
+
 	// info messages
 	static void ConAddInfo(IConsole::IResult *pResult, void *pUser);
 	static void ConRemoveInfo(IConsole::IResult *pResult, void *pUser);
@@ -309,13 +311,13 @@ public:
 	int GetInfoTextMsgInterval() { return m_InfoTextMsgInterval; }
 	int GetInfoTextInterval() { return m_InfoTextInterval; }
 	std::string GetNextInfoText();
-	
+
 	virtual int GetNumLoggedInAdmins() { return m_numLoggedInAdmins; }
-	
+
 	// logins
 	typedef std::map<std::string,std::string>::iterator loginiterator;
 	std::map<std::string,std::string> logins;
-	
+
 	// log some client out of the rcon
 	void rconLogClientOut(int ClientID, const char *msg = "Logout successful.");
 };
