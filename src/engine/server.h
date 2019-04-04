@@ -52,6 +52,7 @@ public:
 	virtual void SetClientClan(int ClientID, char const *pClan) = 0;
 	virtual void SetClientCountry(int ClientID, int Country) = 0;
 	virtual void SetClientScore(int ClientID, int Score) = 0;
+	virtual void SetClientFlags(int ClientID, int Flags) = 0;
 
 	virtual int SnapNewID() = 0;
 	virtual void SnapFreeID(int ID) = 0;
@@ -72,12 +73,12 @@ public:
 	virtual bool DemoRecorder_IsRecording() = 0;
 	//zCatch
 	virtual void MapReload() = 0;
-	
+
 	virtual int GetInfoTextIntervalPause() = 0;
 	virtual int GetInfoTextMsgInterval() = 0;
 	virtual int GetInfoTextInterval() = 0;
 	virtual std::string GetNextInfoText() = 0;
-	
+
 	virtual int GetNumLoggedInAdmins() = 0;
 };
 
@@ -111,7 +112,7 @@ public:
 	virtual const char *NetVersion() = 0;
 
 	virtual bool IsClientAimBot(int ClientID) = 0;
-	
+
 	virtual void InformPlayers(const char *pText) = 0;
 };
 

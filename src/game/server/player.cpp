@@ -21,7 +21,7 @@ CPlayer::CPlayer(CGameContext *pGameServer, int ClientID, int Team)
 	m_SpectatorID = SPEC_FREEVIEW;
 	m_LastActionTick = Server()->Tick();
 	m_TeamChangeTick = Server()->Tick();
-	
+
 	//zCatch
 	m_CaughtBy = ZCATCH_NOT_CAUGHT;
 	m_SpecExplicit = false;
@@ -31,12 +31,12 @@ CPlayer::CPlayer(CGameContext *pGameServer, int ClientID, int Team)
 	m_TicksSpec = 0;
 	m_TicksIngame = 0;
 	m_ChatTicks = 0;
-	
+
 	// zCatch/TeeVi
 	m_ZCatchVictims = NULL;
 	m_zCatchNumVictims = 0;
 	m_zCatchNumKillsInARow = 0;
-	
+
 	// bot detection
 	m_IsAimBot = 0;
 	m_AimBotIndex = 0;
@@ -59,7 +59,7 @@ CPlayer::~CPlayer()
 		m_ZCatchVictims = tmp->prev;
 		delete tmp;
 	}
-	
+
 
 	delete m_pCharacter;
 	m_pCharacter = 0;
@@ -75,14 +75,14 @@ void CPlayer::Tick()
 		return;
 
 	Server()->SetClientScore(m_ClientID, m_Score);
-	
+
 	/* begin zCatch*/
-	
+
 	if(m_Team == TEAM_SPECTATORS)
 		m_TicksSpec++;
 	else
 		m_TicksIngame++;
-	
+
 	if(m_ChatTicks > 0)
 		m_ChatTicks--;
 
@@ -142,7 +142,7 @@ void CPlayer::Tick()
 		++m_LastActionTick;
 		++m_TeamChangeTick;
  	}
-	
+
 	// bot detection
 	m_LastTarget = m_CurrentTarget;
 	m_CurrentTarget.x = m_LatestActivity.m_TargetX;
@@ -245,6 +245,9 @@ void CPlayer::OnPredictedInput(CNetObj_PlayerInput *NewInput)
 
 void CPlayer::OnDirectInput(CNetObj_PlayerInput *NewInput)
 {
+	if(NewInput->m_PlayerFlags)
+		Server()->SetClientFlags(m_ClientID, NewInput->m_PlayerFlags);
+
 	if(NewInput->m_PlayerFlags&PLAYERFLAG_CHATTING)
 	{
 		// skip the input if chat is active

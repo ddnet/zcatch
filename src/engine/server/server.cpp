@@ -490,6 +490,15 @@ void CServer::SetClientScore(int ClientID, int Score)
 	m_aClients[ClientID].m_Score = Score;
 }
 
+void CServer::SetClientFlags(int ClientID, int Flags)
+{
+	if(ClientID < 0 || ClientID >= MAX_CLIENTS || m_aClients[ClientID].m_State < CClient::STATE_READY)
+		return;
+
+	if(Flags > m_aClients[ClientID].m_Flags)
+		m_aClients[ClientID].m_Flags = Flags;
+}
+
 void CServer::Kick(int ClientID, const char *pReason)
 {
 	if(ClientID < 0 || ClientID >= MAX_CLIENTS || m_aClients[ClientID].m_State == CClient::STATE_EMPTY)
@@ -2045,8 +2054,8 @@ void CServer::ConStatus(IConsole::IResult *pResult, void *pUser)
 										pThis->m_aClients[i].m_Authed == CServer::AUTHED_SUBADMIN ? bBuf :
 										pThis->m_aClients[i].m_Authed == CServer::AUTHED_MOD ? "(Mod)" : "";
 				const char *pAimBotStr = pThis->GameServer()->IsClientAimBot(i) ? "[aimbot]" : "";
-				str_format(aBuf, sizeof(aBuf), "id=%d addr=%s name='%s' score=%d %s %s client=%d", i, aAddrStr,
-					pThis->m_aClients[i].m_aName, pThis->m_aClients[i].m_Score, pAuthStr, pAimBotStr, ((CGameContext *)(pThis->GameServer()))->m_apPlayers[i]->m_ClientVersion);
+				str_format(aBuf, sizeof(aBuf), "id=%d addr=%s name='%s' score=%d %s %s client=%d flags=%d", i, aAddrStr,
+					pThis->m_aClients[i].m_aName, pThis->m_aClients[i].m_Score, pAuthStr, pAimBotStr, ((CGameContext *)(pThis->GameServer()))->m_apPlayers[i]->m_ClientVersion, pThis->m_aClients[i].m_Flags);
 			}
 			else
 				str_format(aBuf, sizeof(aBuf), "id=%d addr=%s connecting", i, aAddrStr);
