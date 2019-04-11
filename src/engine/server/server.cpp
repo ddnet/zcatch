@@ -342,6 +342,7 @@ void CServer::CClient::Reset()
 	m_LastInputTick = -1;
 	m_SnapRate = CClient::SNAPRATE_INIT;
 	m_Score = 0;
+	m_Flags = 0;
 }
 
 CServer::CServer() : m_DemoRecorder(&m_SnapshotDelta)
