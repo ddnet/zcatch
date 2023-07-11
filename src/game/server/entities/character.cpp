@@ -885,7 +885,7 @@ bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
 	if(g_Config.m_SvMode == 4 && Weapon == WEAPON_GRENADE && Dmg < g_Config.m_SvGrenadeMinDamage)
 		return false;
 
-	if(g_Config.m_SvRespawnProtection && From >= 0 && (m_pPlayer->m_RespawnProtection > Server()->Tick() || GameServer()->m_apPlayers[From]->m_RespawnProtection > Server()->Tick()))
+	if(g_Config.m_SvRespawnProtection && From >= 0 && GameServer()->m_apPlayers[From] && (m_pPlayer->m_RespawnProtection > Server()->Tick() || GameServer()->m_apPlayers[From]->m_RespawnProtection > Server()->Tick()))
 		return false;
 	m_Health = 0;
 	m_Armor = 0;
