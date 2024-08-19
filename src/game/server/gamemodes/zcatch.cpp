@@ -93,10 +93,16 @@ int CGameController_zCatch::OnCharacterDeath(class CCharacter *pVictim, class CP
 		if(pKiller->GetTeam() != TEAM_SPECTATORS)
 		{
 			++pKiller->m_zCatchNumKillsInARow;
-			pKiller->AddZCatchVictim(victim->GetCID(), CPlayer::ZCATCH_CAUGHT_REASON_KILLED);
-			char aBuf[256];
-			str_format(aBuf, sizeof(aBuf), "You are caught until '%s' dies.", Server()->ClientName(pKiller->GetCID()));
-			GameServer()->SendChatTarget(victim->GetCID(), aBuf);
+			if(!g_Config.m_SvAutoRelease) {
+				pKiller->AddZCatchVictim(victim->GetCID(), CPlayer::ZCATCH_CAUGHT_REASON_KILLED);
+				char aBuf[256];
+				str_format(aBuf, sizeof(aBuf), "You are caught until '%s' dies.", Server()->ClientName(pKiller->GetCID()));
+				GameServer()->SendChatTarget(victim->GetCID(), aBuf);
+			} else {
+				char aBuf[256];
+				str_format(aBuf, sizeof(aBuf), "You were caught by '%s', but auto-released by the server.", Server()->ClientName(pKiller->GetCID()));
+				GameServer()->SendChatTarget(victim->GetCID(), aBuf);
+			}
 		}
 	}
 	else

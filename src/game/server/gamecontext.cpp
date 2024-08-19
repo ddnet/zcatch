@@ -705,7 +705,7 @@ void CGameContext::OnClientEnter(int ClientID)
 		for(int i = 0; i < MAX_CLIENTS; i++)
 			if(m_apPlayers[i] && ((leader && m_apPlayers[i]->m_zCatchNumKillsInARow > leader->m_zCatchNumKillsInARow) || (!leader && m_apPlayers[i]->m_zCatchNumKillsInARow)))
 				leader = m_apPlayers[i];
-		if(leader)
+		if(leader && !g_Config.m_SvAutoRelease)
 			leader->AddZCatchVictim(ClientID, CPlayer::ZCATCH_CAUGHT_REASON_JOINING);
 		else
 			p->m_SpecExplicit = false;
@@ -724,7 +724,7 @@ void CGameContext::OnClientEnter(int ClientID)
 	
 	/* zCatch begin */
 	SendChatTarget(ClientID, "Welcome to zCatch! Type /info for more.");
-	if(g_Config.m_SvAllowJoin == 2 && leader)
+	if(g_Config.m_SvAllowJoin == 2 && leader && !g_Config.m_SvAutoRelease)
 	{
 		char buf[128];
 		str_format(buf, sizeof(buf), "You will join the game when '%s' dies", Server()->ClientName(leader->GetCID()));
@@ -1569,6 +1569,12 @@ void CGameContext::ConRestart(IConsole::IResult *pResult, void *pUserData)
 		pSelf->m_pController->StartRound();
 }
 
+void CGameContext::ConEndRound(IConsole::IResult *pResult, void *pUserData)
+{
+	CGameContext *pSelf = (CGameContext *)pUserData;
+	pSelf->m_pController->EndRound();
+}
+
 void CGameContext::ConBroadcast(IConsole::IResult *pResult, void *pUserData)
 {
 	CGameContext *pSelf = (CGameContext *)pUserData;
@@ -2016,6 +2022,7 @@ void CGameContext::OnConsoleInit()
 	Console()->Register("pause", "", CFGFLAG_SERVER, ConPause, this, "Pause/unpause game");
 	Console()->Register("change_map", "?r", CFGFLAG_SERVER|CFGFLAG_STORE, ConChangeMap, this, "Change map");
 	Console()->Register("restart", "?i", CFGFLAG_SERVER|CFGFLAG_STORE, ConRestart, this, "Restart in x seconds (0 = abort)");
+	Console()->Register("end_round", "", CFGFLAG_SERVER|CFGFLAG_STORE, ConEndRound, this, "Ends round");
 	Console()->Register("broadcast", "r", CFGFLAG_SERVER, ConBroadcast, this, "Broadcast message");
 	Console()->Register("say", "r", CFGFLAG_SERVER, ConSay, this, "Say in chat");
 	Console()->Register("set_team", "ii?i", CFGFLAG_SERVER, ConSetTeam, this, "Set team of player to team");
